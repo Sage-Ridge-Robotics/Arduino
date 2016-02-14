@@ -3,9 +3,11 @@
 Sage Ridge Robotics
 Example 21
 
-Color Bot morning. This example sketch integrates a luminosity, ultrasonic distance, 
-and two (2) color sensors to drive a single steering servo and two motors allowing a robot 
-to follow a color-marked course.
+Color Bot I. 
+
+This example sketch integrates a luminosity, ultrasonic distance, 
+and two (2) color sensors to drive a single steering servo and two motors 
+allowing a robot to follow a color-marked course.
 
 This sketch is modified from the example sketch published by Adafruit, LLC 
 on github. This code is in the public domain.
@@ -13,6 +15,8 @@ on github. This code is in the public domain.
 In order to use two color sensors with hard-coded I2C addresses (these would conflict on 
 a single I2C bus), we use an alternative library to designate arbitrary Arduino pins as the SCL 
 and SDA pins. This allows us to create multiple I2C busses. 
+
+This Sketch requires the SRS_Robotics_Multisensor_TCS34725 library.
 
 */
 

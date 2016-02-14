@@ -1,13 +1,11 @@
 /*
 
 Sage Ridge Robotics
-Color Bot morning. This example sketch integrates a luminosity, ultrasonic distance, 
-and two (2) color sensors to drive a single steering servo and two motors allowing a robot 
-to follow a color-marked course.
+Sketch demonstrating the use of the LAB color system and deltaE for color detection. This
+Sketch runs an Arduino with Adafruit TCS34725 color sensor to detect and return a
+color match signal.
 
-This sketch provides the core logic of the robot and depends on the color sensing subsystem.
-
-Stuart Hayes (w. corrections by C v Nagy)
+This Sketch requires the SRS_Robotics_Adafruit_TCS34725 library.
 
 */
 

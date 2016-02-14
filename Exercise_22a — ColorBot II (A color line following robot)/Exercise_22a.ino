@@ -1,9 +1,10 @@
 /*
 
 Sage Ridge Robotics
-Color Bot morning. This example sketch integrates a luminosity, ultrasonic distance, 
-and two (2) color sensors to drive a single steering servo and two motors allowing a robot 
-to follow a color-marked course.
+Color Bot II. 
+
+This Sketch is the primary color sensing system for a color line following robot that uses a second 
+Arduino to process and return color data.
 
 This sketch provides the core logic of the robot and depends on the color sensing subsystem.
 

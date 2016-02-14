@@ -1,7 +1,7 @@
 /*
 
 Sage Ridge Robotics
-Example 24
+Example 23
 
 This sketch is modified from an Adafruit example and
 implements the Adafruit GPS class and receiver.
@@ -36,8 +36,8 @@ boolean usingInterrupt = false;
 void useInterrupt(boolean);
 
 // Target location in lat and long
-float t_latitude = 39.409415;
-float t_longitude = -119.801130;
+float t_latitude = 39.543498;
+float t_longitude = -119.875442;
 
 // Setting things up, including the interrupt
 void setup()  
@@ -104,7 +104,7 @@ void loop(){
   // if millis() or timer wraps around, we'll just reset it
   if (timer > millis())  timer = millis();
 
-  // approximately every 5 seconds or so, print out the current stats
+  // approximately every 2 seconds or so, print out the current stats
   if (millis() - timer > 5000) { 
     timer = millis(); // reset the timer
     
@@ -134,41 +134,72 @@ void loop(){
       Serial.println(c_longitude, 6);
       Serial.print("Altitude in meters: "); Serial.println(GPS.altitude);
       
-      Serial.print("Speed in km/h: "); Serial.println(GPS.speed/1.85200);
+      Serial.print("Speed in km/h: "); Serial.println(GPS.speed/0.539956803456);
       Serial.print("Degrees east of true north: "); Serial.println(GPS.angle);
       Serial.print("Satellites: "); Serial.println((int)GPS.satellites);
       
-   // Distance to target cache
+      if ( abs(c_latitude - t_latitude) < 0.00001 && abs(c_longitude - t_longitude) < 0.00001 ) {
+        Serial.println("Wow, you're close!"); 
+        digitalWrite(13, HIGH); 
+        delay(1000); 
+        digitalWrite(13, LOW);
+      } else {
+        Serial.print("Bummer, still not there yet!"); 
+        Serial.print(" Longitude difference: "); 
+        Serial.print(abs(c_longitude - t_longitude),6); 
+        Serial.print(" Latitude difference: "); 
+        Serial.println(abs(c_longitude - t_longitude),6);
+      }
+      
+      if ( abs(c_latitude - t_latitude) < 0.0001 && abs(c_longitude - t_longitude) < 0.0001 ) {
+        Serial.println("Geting closer!"); 
+        digitalWrite(12, HIGH); 
+        delay(1000); 
+        digitalWrite(12, LOW);
+      } else {
+        Serial.print("Still warm, but that is just about it"); 
+        Serial.print(" Longitude difference: "); 
+        Serial.print(abs(c_longitude - t_longitude),6); 
+        Serial.print(" Latitude difference: "); 
+        Serial.println(abs(c_longitude - t_longitude),6);
+      }
+
+      if ( abs(c_latitude - t_latitude) < 0.001 && abs(c_longitude - t_longitude) < 0.001 ) {
+        Serial.println("Warm"); 
+        digitalWrite(11, HIGH); 
+        delay(1000); 
+        digitalWrite(11, LOW);
+      } else {
+        Serial.print("Not even warm!"); 
+        Serial.print(" Longitude difference: "); 
+        Serial.print(abs(c_longitude - t_longitude),6); 
+        Serial.print(" Latitude difference: "); 
+        Serial.println(abs(c_longitude - t_longitude),6);
+      }
+
+     // Distance to target cache
      // Spherical Law of Cosines approximation of distance between two geographic points.
-     // d = acos( sin φ1 ⋅ sin φ2 + cos φ1 ⋅ cos φ2 ⋅ cos Δλ ) ⋅ R
      // For more accuracy, use the Haversine formula
        // a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
        // c = 2 ⋅ atan2( √a, √(1−a) )
        // d = R ⋅ c 
        // Where R is is earth’s radius (mean radius = 6371000m)
-       
-     float tr_latitude = radians(t_latitude);  
-     float cr_latitude = radians(c_latitude);
-     float tr_longitude = radians(t_longitude);
-     float cr_longitude = radians(c_longitude);
-     float delta_latitude = radians(t_latitude - c_latitude);
-     float delta_longitude = radians(t_longitude - c_longitude);
-     long  R = 6371000; // Mean radius of earth at equator in meters
-     
-     // float t_distance = acos( sin(cr_latitude) * sin(tr_latitude) + cos(cr_latitude) * cos(tr_latitude) * cos(delta_longitude) ) * R;
-     float a = pow(sin(delta_latitude/2),2) + cos(c_latitude) * cos(t_latitude) * pow(sin(delta_longitude/2),2);
-     float c = 2 * atan2(sqrt(a), sqrt(1-a));
-     float t_distance = R * c;
-     Serial.print("Distance from target cache: "); Serial.print(t_distance); Serial.println("m");
+     tr_latitude = t_latitude * (PI/180);  
+     cr_latitude = c_latitude * (PI/180);
+     tr_longitude = t_longitude * (PI/180);
+     cr_longitude = c_longitude * (PI/180);
+     float t_distance = acos( sin(cr_latitude) * sin(tr_latitude) + cos(cr_latitude) * cos(tr_latitude) * cos(tr_longitude - cr_longitude) ) * 6371000;
+     Serial.print("Distance from target cache"); Serial.print(t_distance); Serial.println("m");
      
      // Forward azimuth or initial bearing
      // θ = atan2( sin Δλ ⋅ cos φ2 , cos φ1 ⋅ sin φ2 − sin φ1 ⋅ cos φ2 ⋅ cos Δλ )
-     float x = sin(delta_longitude) * cos(tr_latitude);
-     float y = cos(c_latitude) * sin(t_latitude) - sin(c_latitude) * cos(t_latitude) * cos(delta_longitude);
-     float bearing = degrees(atan2(x,y));
-     Serial.print("Forward azimuth: "); Serial.print(bearing); Serial.println(" degrees east or west of true north");
+     float y = sin(tr_latitude - cr_longitude) * cos(tr_latitude);
+     float x = cos(cr_latitude) * sin(tr_latitude) -
+     sin(cr_latitude) * cos(tr_latitude) * cos(tr_longitude - cr_longitude);
+     float bearing = (atan2(y, x) * (180/PI));
+     Serial.print("Forward azimuth"); Serial.print(t_distance); Serial.println("degrees east of true north");
      
-     // Turn on various LEDs or do something else fun to indicate distance to target
+     
      if ( t_distance < 10)  {digitalWrite(13,HIGH);}
      if ( t_distance < 50)  {digitalWrite(12,HIGH);}
      if ( t_distance < 200) {digitalWrite(11,HIGH);}
@@ -176,9 +207,4 @@ void loop(){
     }
   }
 }
-
-
-// degrees to | from radians conversions
-//float radians(float d) {return d * PI/180;} // Convert to radians from degrees
-//float degrees(float r) {return r * 180/PI;} // Convert to degrees from radians
 
