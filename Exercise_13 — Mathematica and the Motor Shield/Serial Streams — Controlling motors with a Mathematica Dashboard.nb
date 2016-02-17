@@ -1,0 +1,875 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 9.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[     30907,        866]
+NotebookOptionsPosition[     26728,        726]
+NotebookOutlinePosition[     28454,        785]
+CellTagsIndexPosition[     28411,        782]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Serial Streams: Arduino and Wolfram", "Title"],
+
+Cell[TextData[{
+ "Controlling Motors with a ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " Dashboard"
+}], "Subtitle"],
+
+Cell["", "Text"],
+
+Cell[TextData[{
+ StyleBox["Safety",
+  FontWeight->"Bold"],
+ " Remember to ground yourself before handling the electronics. Static is \
+bad, very bad."
+}], "Text"],
+
+Cell["", "Text"],
+
+Cell["", "PageBreak",
+ PageBreakBelow->True],
+
+Cell[CellGroupData[{
+
+Cell["Serial Output", "Section"],
+
+Cell[CellGroupData[{
+
+Cell["Introduction", "Subsection"],
+
+Cell[TextData[{
+ "In this experiment we will connect a servo to the Arduino and use ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " to control the servo\[CloseCurlyQuote]s position. "
+}], "Text"],
+
+Cell[TextData[{
+ "What you will need:\n\n\[Bullet] An Arduino board\n\[Bullet] A laptop\n\
+\[Bullet] A USB cable to connect the Arduino to the laptop\n\[Bullet] The \
+Arduino IDE\n\[Bullet] Arduino example sketch 13\n\[Bullet] ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ "\n\[Bullet] A small hobby servo\n\[Bullet] Three patch wires (1 red, 1 \
+black, and 1 yellow)"
+}], "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Conecting the servo", "Subsection",
+ Background->RGBColor[0.94, 0.91, 0.88]],
+
+Cell["", "Text"],
+
+Cell[TextData[{
+ "We want to simply connect the servo to the Arduino. The servo has three \
+wires: ground (",
+ StyleBox["negative",
+  FontWeight->"Bold"],
+ "), voltage in (",
+ StyleBox["positive",
+  FontWeight->"Bold",
+  FontColor->RGBColor[1, 0, 0]],
+ "), and the ",
+ StyleBox["control",
+  FontWeight->"Bold",
+  FontColor->RGBColor[1, 0.5, 0]],
+ ". To connect the servo to the Arduino board connect the red and black leads \
+to the red and black wires of the servo and the control lead to the yellow or \
+orange wire. Connect the red lead to the +5v power pin on the Arduino, the \
+black lead to the ground pin just next to the power pin, and the yellow lead \
+to digital output 9. The pins should all be on the same side of the Arduino \
+board as shown in the photograph below."
+}], "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Setting up the Arduino", "Subsection",
+ Background->RGBColor[0.94, 0.91, 0.88]],
+
+Cell["", "Text"],
+
+Cell["\<\
+Connect the Arduino to a laptop using the USB cable and start the Arduino \
+IDE. Once the IDE is running, create a new sketch and save it into your \
+Arduino sketch folder as \[OpenCurlyDoubleQuote]Exercise 13.\
+\[CloseCurlyDoubleQuote]  Enter the code reproduced below into the window. Do \
+not just copy and paste the code. Read and understand it.
+
+Once you have added the code to your sketch, save it and then use the verify \
+button to make sure that you have no mistakes (bugs). If the code checks out, \
+upload it to the connected Arduino.
+
+If all went well, the Arduino will have briefly flashed its on-board LED and \
+your servo should briefly jump to life.\
+\>", "Text"],
+
+Cell["", "Text"],
+
+Cell["", "PageBreak",
+ PageBreakBelow->True],
+
+Cell["\<\
+/*
+
+Sage Ridge Robotics
+Example 13
+
+Controlling a servo with a Mathematica dashboard. 
+
+Code adapted from Arduino.cc and Adafruit Industries, LLC.
+This code is in the public domain.
+
+*/
+
+// Load MotorShield libraries and servo.h library.  
+#include <Servo.h>
+
+// Declare variables used globally in the Sketch.  
+// Define constant (unchanging) minimum and maximum servo positions
+int servoPos = 90;  
+
+const int servoMin = 10;
+const int servoMax = 170;
+ 
+// Instatiate objects of the servo class.
+Servo myServo0;   
+
+// Open the serial device and attach the servo object, 
+// myServo0, to digital pin 9. This is where we 
+// attached the physical servo' control wire (yellow).
+void setup() 
+{ 
+  Serial.begin(9600);
+  myServo0.attach(9);
+} 
+
+// Move servo to position sent over serial link by parsing an integer value
+// from the serial stream, checking against servoMin and servoMax
+// to protect the servo, and passing the legal value to the write method of
+// the servo object.
+void loop() 
+{
+  if (Serial.available() > 0) {
+    servoPos = Serial.parseInt();
+    constrain(servoPos, servoMin, servoMax);
+    myServo0.write(servoPos);
+  }
+}
+\
+\>", "Program",
+ Background->GrayLevel[0.85]],
+
+Cell[TextData[StyleBox["Arduino Sketch for Example 13.",
+ FontSize->10]], "Text"],
+
+Cell["", "Text"],
+
+Cell["", "PageBreak",
+ PageBreakBelow->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "Connecting the Arduino to ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " "
+}], "Subsection",
+ Background->RGBColor[0.94, 0.91, 0.88]],
+
+Cell["", "Text"],
+
+Cell[TextData[{
+ "Connect ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " to your Arduino as before. Testing the connection for data should return \
+false because you are not streaming from your Arduino but will write to it."
+}], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"myArduino", " ", "=", " ", 
+  RowBox[{"DeviceOpen", "[", 
+   RowBox[{"\"\<Serial\>\"", ",", "\"\</dev/tty.usbmodemfa141\>\""}], 
+   "]"}]}]], "Input"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   TagBox["DeviceObject",
+    "SummaryHead"], "[", 
+   DynamicModuleBox[{Typeset`open$$ = False}, 
+    PanelBox[
+     PaneSelectorBox[{False->GridBox[{
+        {
+         PaneBox[
+          ButtonBox[
+           
+           DynamicBox[FEPrivate`FrontEndResource[
+            "FEBitmaps", "SquarePlusIconMedium"],
+            ImageSizeCache->{12., {0., 12.}}],
+           Appearance->None,
+           ButtonFunction:>(Typeset`open$$ = True),
+           Evaluator->Automatic,
+           Method->"Preemptive"],
+          Alignment->{Center, Center},
+          
+          ImageSize->
+           Dynamic[{
+            Automatic, 
+             3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+              Magnification])}]], 
+         GraphicsBox[
+          {Thickness[0.038461538461538464`], 
+           {FaceForm[{RGBColor[0.941, 0.961, 0.957], Opacity[1.]}], 
+            FilledCurveBox[{{{1, 4, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}, {1, 
+             3, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}}}, {{{25.5, 2.5}, {25.5, 
+             1.395}, {24.605, 0.5}, {23.5, 0.5}, {2.5, 0.5}, {1.395, 0.5}, {
+             0.5, 1.395}, {0.5, 2.5}, {0.5, 23.5}, {0.5, 24.605}, {1.395, 
+             25.5}, {2.5, 25.5}, {23.5, 25.5}, {24.605, 25.5}, {25.5, 
+             24.605}, {25.5, 23.5}, {25.5, 2.5}}}]}, 
+           {RGBColor[0.7, 0.7, 0.7], Opacity[1.], JoinForm[{"Miter", 10.}], 
+            JoinedCurveBox[{{{1, 4, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}, {1, 
+             3, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}}}, {{{25.5, 2.5}, {25.5, 
+             1.395}, {24.605, 0.5}, {23.5, 0.5}, {2.5, 0.5}, {1.395, 0.5}, {
+             0.5, 1.395}, {0.5, 2.5}, {0.5, 23.5}, {0.5, 24.605}, {1.395, 
+             25.5}, {2.5, 25.5}, {23.5, 25.5}, {24.605, 25.5}, {25.5, 
+             24.605}, {25.5, 23.5}, {25.5, 2.5}}},
+             CurveClosed->{1}]}, 
+           {FaceForm[{RGBColor[0.5423, 0.63104, 0.63597], Opacity[1.]}], 
+            FilledCurveBox[{{{1, 4, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}, {1, 
+             3, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}}}, {{{11.133, 
+             18.727999999999998`}, {11.133, 18.451999999999998`}, {
+             11.357000000000001`, 18.227999999999998`}, {11.633, 
+             18.227999999999998`}, {14.792, 18.227999999999998`}, {15.068, 
+             18.227999999999998`}, {15.292, 18.451999999999998`}, {15.292, 
+             18.727999999999998`}, {15.292, 20.639000000000003`}, {15.292, 
+             20.915}, {15.068, 21.139000000000003`}, {14.792, 
+             21.139000000000003`}, {11.633, 21.139000000000003`}, {
+             11.357000000000001`, 21.139000000000003`}, {11.133, 20.915}, {
+             11.133, 20.639000000000003`}, {11.133, 
+             18.727999999999998`}}}]}, 
+           {FaceForm[{RGBColor[0.5, 0.5, 0.5], Opacity[1.]}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{
+             12.357000000000001`, 1.}, {14.113000000000001`, 1.}, {
+             14.113000000000001`, 9.554}, {12.357000000000001`, 9.554}}}]}, 
+           {FaceForm[{RGBColor[0.624375, 0.695304, 0.691308], Opacity[1.]}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 
+             1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0,
+              1, 0}}}, {{{15.876000000000001`, 19.799}, {8.122, 19.799}, {
+             8.122, 11.516}, {10.573, 11.516}, {10.573, 11.493}, {
+             11.982000000000001`, 9.171}, {14.539, 9.171}, {
+             15.876000000000001`, 11.493}, {15.876000000000001`, 11.516}, {
+             18.326, 11.516}, {18.326, 19.799}, {15.876000000000001`, 
+             19.799}}}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{
+             8.806000000000001, 7.993}, {9.995000000000001, 7.993}, {
+             9.995000000000001, 11.008}, {8.806000000000001, 11.008}}}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{16.5, 
+             7.993}, {17.689, 7.993}, {17.689, 11.008}, {16.5, 11.008}}}]}},
+          AspectRatio->Automatic,
+          ImageSize->{Automatic, 
+            Dynamic[3.5 CurrentValue["FontCapHeight"]]},
+          PlotRange->{{0., 26.}, {0., 26.}}], GridBox[{
+           {
+            RowBox[{
+             TagBox["\<\"Class: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["\<\"Serial\"\>",
+              "SummaryItem"]}], 
+            RowBox[{
+             TagBox["\<\"ID: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["1",
+              "SummaryItem"]}]},
+           {
+            RowBox[{
+             TagBox["\<\"Status: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox[
+              DynamicModuleBox[{Devices`DeviceAPI`DeviceDump`lights$$ = {
+                Style[
+                 Graphics[{{
+                    RGBColor[0.88, 1, 0.88], 
+                    Disk[{0, 0}]}, {
+                    RGBColor[0, 0.85, 0], 
+                    Circle[{0, 0}]}}, PlotRange -> {-2.2, 1.1}, ImageSize -> 
+                  9, ImageMargins -> {{3, 3}, {2, 0}}, 
+                  BaseStyle -> {CacheGraphics -> False}], Selectable -> 
+                 False], 
+                Style[
+                 Graphics[{{
+                    RGBColor[1, 1, 0], 
+                    Disk[{0, 0}]}, {
+                    RGBColor[0.8, 0.8, 0], 
+                    Circle[{0, 0}]}}, PlotRange -> {-2.2, 1.1}, ImageSize -> 
+                  9, ImageMargins -> {{3, 3}, {2, 0}}, 
+                  BaseStyle -> {CacheGraphics -> False}], Selectable -> 
+                 False]}, Devices`DeviceAPI`DeviceDump`opacities$$ = {
+                Opacity[1], 
+                Opacity[0.2]}, Devices`DeviceAPI`DeviceDump`status$$ = {
+               "Connected (/dev/tty.usbmodemfa141)", 
+                "Not connected (/dev/tty.usbmodemfa141)"}, 
+               Devices`DeviceAPI`DeviceDump`d$$ = DeviceObject[{"Serial", 1}],
+                Devices`DeviceAPI`DeviceDump`ind$$ = 2, 
+               Devices`DeviceAPI`DeviceDump`indr$$ = 2}, 
+               DynamicBox[ToBoxes[Devices`DeviceAPI`DeviceDump`ind$$ = If[
+                    DeviceOpenQ[Devices`DeviceAPI`DeviceDump`d$$], 1, 2]; 
+                 Devices`DeviceAPI`DeviceDump`indr$$ = If[
+                    DeviceFramework`DeviceRegisteredQ[
+                    Devices`DeviceAPI`DeviceDump`d$$], 1, 2]; Style[
+                   Row[{
+                    Part[
+                    Devices`DeviceAPI`DeviceDump`lights$$, 
+                    Devices`DeviceAPI`DeviceDump`ind$$], 
+                    Part[
+                    Devices`DeviceAPI`DeviceDump`status$$, 
+                    Devices`DeviceAPI`DeviceDump`ind$$]}], 
+                   Part[
+                   Devices`DeviceAPI`DeviceDump`opacities$$, 
+                    Devices`DeviceAPI`DeviceDump`indr$$]], StandardForm],
+                ImageSizeCache->{214., {5., 9.}}],
+               DynamicModuleValues:>{}],
+              "SummaryItem"]}], "\[SpanFromLeft]"}
+          },
+          AutoDelete->False,
+          
+          BaseStyle->{
+           ShowStringCharacters -> False, NumberMarks -> False, 
+            PrintPrecision -> 3, ShowSyntaxStyles -> False},
+          GridBoxAlignment->{"Columns" -> {{Left}}, "Rows" -> {{Automatic}}},
+          
+          GridBoxItemSize->{
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+          GridBoxSpacings->{"Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}
+       },
+       AutoDelete->False,
+       BaselinePosition->{1, 1},
+       GridBoxAlignment->{"Rows" -> {{Top}}},
+       GridBoxItemSize->{
+        "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}], True->
+      GridBox[{
+        {
+         PaneBox[
+          ButtonBox[
+           
+           DynamicBox[FEPrivate`FrontEndResource[
+            "FEBitmaps", "SquareMinusIconMedium"]],
+           Appearance->None,
+           ButtonFunction:>(Typeset`open$$ = False),
+           Evaluator->Automatic,
+           Method->"Preemptive"],
+          Alignment->{Center, Center},
+          
+          ImageSize->
+           Dynamic[{
+            Automatic, 
+             3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+              Magnification])}]], 
+         GraphicsBox[
+          {Thickness[0.038461538461538464`], 
+           {FaceForm[{RGBColor[0.941, 0.961, 0.957], Opacity[1.]}], 
+            FilledCurveBox[{{{1, 4, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}, {1, 
+             3, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}}}, {{{25.5, 2.5}, {25.5, 
+             1.395}, {24.605, 0.5}, {23.5, 0.5}, {2.5, 0.5}, {1.395, 0.5}, {
+             0.5, 1.395}, {0.5, 2.5}, {0.5, 23.5}, {0.5, 24.605}, {1.395, 
+             25.5}, {2.5, 25.5}, {23.5, 25.5}, {24.605, 25.5}, {25.5, 
+             24.605}, {25.5, 23.5}, {25.5, 2.5}}}]}, 
+           {RGBColor[0.7, 0.7, 0.7], Opacity[1.], JoinForm[{"Miter", 10.}], 
+            JoinedCurveBox[{{{1, 4, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}, {1, 
+             3, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}}}, {{{25.5, 2.5}, {25.5, 
+             1.395}, {24.605, 0.5}, {23.5, 0.5}, {2.5, 0.5}, {1.395, 0.5}, {
+             0.5, 1.395}, {0.5, 2.5}, {0.5, 23.5}, {0.5, 24.605}, {1.395, 
+             25.5}, {2.5, 25.5}, {23.5, 25.5}, {24.605, 25.5}, {25.5, 
+             24.605}, {25.5, 23.5}, {25.5, 2.5}}},
+             CurveClosed->{1}]}, 
+           {FaceForm[{RGBColor[0.5423, 0.63104, 0.63597], Opacity[1.]}], 
+            FilledCurveBox[{{{1, 4, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}, {1, 
+             3, 3}, {0, 1, 0}, {1, 3, 3}, {0, 1, 0}}}, {{{11.133, 
+             18.727999999999998`}, {11.133, 18.451999999999998`}, {
+             11.357000000000001`, 18.227999999999998`}, {11.633, 
+             18.227999999999998`}, {14.792, 18.227999999999998`}, {15.068, 
+             18.227999999999998`}, {15.292, 18.451999999999998`}, {15.292, 
+             18.727999999999998`}, {15.292, 20.639000000000003`}, {15.292, 
+             20.915}, {15.068, 21.139000000000003`}, {14.792, 
+             21.139000000000003`}, {11.633, 21.139000000000003`}, {
+             11.357000000000001`, 21.139000000000003`}, {11.133, 20.915}, {
+             11.133, 20.639000000000003`}, {11.133, 
+             18.727999999999998`}}}]}, 
+           {FaceForm[{RGBColor[0.5, 0.5, 0.5], Opacity[1.]}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{
+             12.357000000000001`, 1.}, {14.113000000000001`, 1.}, {
+             14.113000000000001`, 9.554}, {12.357000000000001`, 9.554}}}]}, 
+           {FaceForm[{RGBColor[0.624375, 0.695304, 0.691308], Opacity[1.]}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 
+             1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0,
+              1, 0}}}, {{{15.876000000000001`, 19.799}, {8.122, 19.799}, {
+             8.122, 11.516}, {10.573, 11.516}, {10.573, 11.493}, {
+             11.982000000000001`, 9.171}, {14.539, 9.171}, {
+             15.876000000000001`, 11.493}, {15.876000000000001`, 11.516}, {
+             18.326, 11.516}, {18.326, 19.799}, {15.876000000000001`, 
+             19.799}}}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{
+             8.806000000000001, 7.993}, {9.995000000000001, 7.993}, {
+             9.995000000000001, 11.008}, {8.806000000000001, 11.008}}}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{16.5, 
+             7.993}, {17.689, 7.993}, {17.689, 11.008}, {16.5, 11.008}}}]}},
+          AspectRatio->Automatic,
+          ImageSize->{Automatic, 
+            Dynamic[3.5 CurrentValue["FontCapHeight"]]},
+          PlotRange->{{0., 26.}, {0., 26.}}], GridBox[{
+           {
+            RowBox[{
+             TagBox["\<\"Class: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["\<\"Serial\"\>",
+              "SummaryItem"]}], 
+            RowBox[{
+             TagBox["\<\"ID: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["1",
+              "SummaryItem"]}]},
+           {
+            RowBox[{
+             TagBox["\<\"Status: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox[
+              DynamicModuleBox[{Devices`DeviceAPI`DeviceDump`lights$$ = {
+                Style[
+                 Graphics[{{
+                    RGBColor[0.88, 1, 0.88], 
+                    Disk[{0, 0}]}, {
+                    RGBColor[0, 0.85, 0], 
+                    Circle[{0, 0}]}}, PlotRange -> {-2.2, 1.1}, ImageSize -> 
+                  9, ImageMargins -> {{3, 3}, {2, 0}}, 
+                  BaseStyle -> {CacheGraphics -> False}], Selectable -> 
+                 False], 
+                Style[
+                 Graphics[{{
+                    RGBColor[1, 1, 0], 
+                    Disk[{0, 0}]}, {
+                    RGBColor[0.8, 0.8, 0], 
+                    Circle[{0, 0}]}}, PlotRange -> {-2.2, 1.1}, ImageSize -> 
+                  9, ImageMargins -> {{3, 3}, {2, 0}}, 
+                  BaseStyle -> {CacheGraphics -> False}], Selectable -> 
+                 False]}, Devices`DeviceAPI`DeviceDump`opacities$$ = {
+                Opacity[1], 
+                Opacity[0.2]}, Devices`DeviceAPI`DeviceDump`status$$ = {
+               "Connected (/dev/tty.usbmodemfa141)", 
+                "Not connected (/dev/tty.usbmodemfa141)"}, 
+               Devices`DeviceAPI`DeviceDump`d$$ = DeviceObject[{"Serial", 1}],
+                Devices`DeviceAPI`DeviceDump`ind$$, 
+               Devices`DeviceAPI`DeviceDump`indr$$}, 
+               DynamicBox[ToBoxes[Devices`DeviceAPI`DeviceDump`ind$$ = If[
+                    DeviceOpenQ[Devices`DeviceAPI`DeviceDump`d$$], 1, 2]; 
+                 Devices`DeviceAPI`DeviceDump`indr$$ = If[
+                    DeviceFramework`DeviceRegisteredQ[
+                    Devices`DeviceAPI`DeviceDump`d$$], 1, 2]; Style[
+                   Row[{
+                    Part[
+                    Devices`DeviceAPI`DeviceDump`lights$$, 
+                    Devices`DeviceAPI`DeviceDump`ind$$], 
+                    Part[
+                    Devices`DeviceAPI`DeviceDump`status$$, 
+                    Devices`DeviceAPI`DeviceDump`ind$$]}], 
+                   Part[
+                   Devices`DeviceAPI`DeviceDump`opacities$$, 
+                    Devices`DeviceAPI`DeviceDump`indr$$]], StandardForm]],
+               DynamicModuleValues:>{}],
+              "SummaryItem"]}], "\[SpanFromLeft]"},
+           {
+            TagBox[
+             DynamicModuleBox[{Devices`DeviceAPI`DeviceDump`opacities$$ = {
+               Opacity[1], 
+               Opacity[0.2]}, Devices`DeviceAPI`DeviceDump`d$$ = 
+              DeviceObject[{"Serial", 1}], 
+              Devices`DeviceAPI`DeviceDump`props$$, 
+              Devices`DeviceAPI`DeviceDump`vals$$, 
+              Devices`DeviceAPI`DeviceDump`reg$$}, 
+              
+              DynamicBox[ToBoxes[
+               Devices`DeviceAPI`DeviceDump`reg$$ = 
+                 DeviceFramework`DeviceRegisteredQ[
+                  Devices`DeviceAPI`DeviceDump`d$$]; 
+                Devices`DeviceAPI`DeviceDump`props$$ = 
+                 DeviceFramework`DeviceExternalProperties[
+                  Devices`DeviceAPI`DeviceDump`d$$]; 
+                Devices`DeviceAPI`DeviceDump`vals$$ = 
+                 Devices`DeviceAPI`DeviceDump`d$$[
+                  Devices`DeviceAPI`DeviceDump`props$$]; Column[
+                  Join[{
+                    BoxForm`MakeSummaryItem[{"Properties: ", 
+                    If[
+                    Or[
+                    Not[Devices`DeviceAPI`DeviceDump`reg$$], 
+                    Devices`DeviceAPI`DeviceDump`props$$ === {}], 
+                    Style[None, 
+                    Part[Devices`DeviceAPI`DeviceDump`opacities$$, 
+                    If[Devices`DeviceAPI`DeviceDump`reg$$, 1, 2]]], ""]}, 
+                    StandardForm]}, 
+                   MapThread[BoxForm`MakeSummaryItem[{
+                    StringJoin["      ", 
+                    ToString[#], ": "], #2}, StandardForm]& , {
+                    Devices`DeviceAPI`DeviceDump`props$$, 
+                    Devices`DeviceAPI`DeviceDump`vals$$}]]], StandardForm]],
+              DynamicModuleValues:>{}],
+             "SummaryItem"], "\[SpanFromLeft]"}
+          },
+          AutoDelete->False,
+          
+          BaseStyle->{
+           ShowStringCharacters -> False, NumberMarks -> False, 
+            PrintPrecision -> 3, ShowSyntaxStyles -> False},
+          GridBoxAlignment->{"Columns" -> {{Left}}, "Rows" -> {{Automatic}}},
+          
+          GridBoxItemSize->{
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+          GridBoxSpacings->{"Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}
+       },
+       AutoDelete->False,
+       BaselinePosition->{1, 1},
+       GridBoxAlignment->{"Rows" -> {{Top}}},
+       GridBoxItemSize->{
+        "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}]}, Dynamic[
+      Typeset`open$$],
+      ImageSize->Automatic],
+     BaselinePosition->Baseline],
+    DynamicModuleValues:>{}], "]"}],
+  DeviceObject[{"Serial", 1}],
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"DeviceExecute", "[", 
+   RowBox[{"myArduino", ",", " ", "\"\<SerialReadyQ\>\""}], "]"}], 
+  "\[IndentingNewLine]"}]], "Input"],
+
+Cell[BoxData["False"], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Writing data", "Subsection",
+ Background->RGBColor[0.94, 0.91, 0.88]],
+
+Cell["", "Text"],
+
+Cell["\<\
+Writing data over the serial connection to the Arduino is very simple and \
+requires the DeviceWrite[] function. Try this command:\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"DeviceWrite", "[", 
+   RowBox[{"myArduino", ",", "\"\<170\>\""}], "]"}], ";"}]], "Input"],
+
+Cell["\<\
+Your servo should have moved to the position specified by 100. Try changing \
+the values between 10 and 170 (the limits set in your Arduino sketch). \
+Remember to use the quotes. The number is sent as a string and the Arduino \
+sketch takes care of converting the stream of 1, 0, 0 to the integer 100.\
+\>", "Text"],
+
+Cell["\<\
+Using a control object makes it possible to control your servo with a slider \
+or knob. Execute the following functions, Control[] and \
+Dynamic[DeviceWrite[]]. Use the slider to control your servo. You can step \
+through servo positions with the Control slider\[CloseCurlyQuote]s stepping \
+and animation functions (open these using the small button with a plus sign \
+to the right of the slider).\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Control", "[", 
+  RowBox[{"{", 
+   RowBox[{"x", ",", "10", ",", "170"}], "}"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ TagBox[
+  DynamicBox[ToBoxes[
+    Manipulate`Control[{$CellContext`x, 10, 170}, Automatic], StandardForm],
+   ImageSizeCache->{212., {9., 15.}}],
+  "Control"]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Dynamic", "[", 
+  RowBox[{
+   RowBox[{"DeviceWrite", "[", 
+    RowBox[{"myArduino", ",", 
+     RowBox[{"ToString", "[", "x", "]"}]}], "]"}], ";"}], "]"}]], "Input"],
+
+Cell[BoxData[
+ DynamicBox[ToBoxes[DeviceWrite[$CellContext`myArduino, 
+     ToString[$CellContext`x]]; Null, StandardForm],
+  ImageSizeCache->{31., {0., 9.}}]], "Output"]
+}, Open  ]],
+
+Cell["", "PageBreak",
+ PageBreakBelow->True],
+
+Cell[CellGroupData[{
+
+Cell["Recap", "Subsubsection",
+ Background->RGBColor[0.94, 0.91, 0.88]],
+
+Cell["", "Text"],
+
+Cell["\<\
+To recap, you will need to execute the following code on the Arduino and in \
+Mathematica.\
+\>", "Text"],
+
+Cell["", "Text"],
+
+Cell["Arduino", "Item"],
+
+Cell["\<\
+
+int potPin = 0;
+#include <Servo.h>
+int servoPos = 90;  
+const int servoMin = 10;
+const int servoMax = 170;
+Servo myServo0;   
+void setup() 
+{ 
+  Serial.begin(9600);
+  myServo0.attach(9);
+} 
+void loop() 
+{
+  if (Serial.available() > 0) {
+    servoPos = Serial.parseInt();
+    constrain(servoPos, servoMin, servoMax);
+    myServo0.write(servoPos);
+  }
+}
+\
+\>", "Program"],
+
+Cell[BoxData[""], "Input"],
+
+Cell["Mathematica ", "Item"],
+
+Cell[TextData[{
+ "\n",
+ StyleBox["To dynamically control a servo over the serial link you need three \
+lines of code.",
+  FontSlant->"Italic"],
+ "\n\n\tmyArduino = DeviceOpen[\"Serial\", \"device or path to /dev file\"];\n\
+\tControl[{x,10,170}]\n\tDynamic[DeviceWrite[myArduino,ToString[x]];]\n\n"
+}], "Program"],
+
+Cell["\<\
+It would not take too many lines of code to build an entire virtual control \
+panel!\
+\>", "Text"],
+
+Cell["", "PageBreak",
+ PageBreakBelow->True]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["References", "Section"],
+
+Cell[TextData[{
+ "Code derived from:\n\nArduino Group (2014) ",
+ StyleBox["analogRead().",
+  FontSlant->"Italic"],
+ " http://arduino.cc/en/Reference/AnalogRead.\n\nArduino Group (2014) ",
+ StyleBox["Knob.",
+  FontSlant->"Italic"],
+ "http://arduino.cc/en/Tutorial/Knob.\n\nMonk, Simon (2012) Arduino Lesson 8. \
+",
+ StyleBox["Analog Inputs",
+  FontSlant->"Italic"],
+ ". https://learn.adafruit.com/adafruit-arduino-lesson-8-analog-inputs.\n\n\n\
+\n"
+}], "Text"]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1159, 778},
+WindowMargins->{{1, Automatic}, {Automatic, 3}},
+PrintingCopies->1,
+PrintingStartingPageNumber->1,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{
+   Cell[
+    TextData[
+     StyleBox[
+      RowBox[{"Third", " ", "Practicum"}], FontSlant -> "Plain"]], "Header", 
+    CellMargins -> {{0, Inherited}, {Inherited, Inherited}}], 
+   Cell[
+    TextData[
+     StyleBox[
+      RowBox[{
+       "Mini", "-", "Bot", "!", " ", "Arduino", " ", "and", " ", "Wolfram"}], 
+      "Header"]], "Header"], None}, {None, 
+   Cell[
+    TextData[
+     StyleBox[
+      RowBox[{
+       "Mini", "-", "Bot", "!", " ", "Arduino", " ", "and", " ", "Wolfram"}], 
+      "Header"]], "Header"], None}},
+PageFooters->{{
+   Cell[
+    TextData[
+     CounterBox["Page", CounterFunction :> Identity]], "Footer", 
+    CellMargins -> {{0, Inherited}, {Inherited, Inherited}}], None, None}, {
+  None, None, 
+   Cell[
+    TextData[
+     CounterBox["Page", CounterFunction :> Identity]], "Footer", 
+    CellMargins -> {{Inherited, 0}, {Inherited, Inherited}}]}},
+PageHeaderLines->{True, False},
+PageFooterLines->{False, False},
+PrintingOptions->{"FacingPages"->True,
+"FirstPageFace"->Right,
+"FirstPageFooter"->False,
+"FirstPageHeader"->False,
+"PaperOrientation"->"Portrait",
+"PaperSize"->{612, 792},
+"PrintCellBrackets"->False,
+"PrintMultipleHorizontalPages"->False,
+"PrintRegistrationMarks"->False,
+"PrintingMargins"->{{72., 54.}, {86.39999999999999, 72.}}},
+FrontEndVersion->"10.1 for Mac OS X x86 (32-bit, 64-bit Kernel) (March 23, \
+2015)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[579, 22, 52, 0, 92, "Title"],
+Cell[634, 24, 125, 5, 51, "Subtitle"],
+Cell[762, 31, 16, 0, 30, "Text"],
+Cell[781, 33, 162, 5, 30, "Text"],
+Cell[946, 40, 16, 0, 30, "Text"],
+Cell[965, 42, 44, 1, 4, "PageBreak",
+ PageBreakBelow->True],
+Cell[CellGroupData[{
+Cell[1034, 47, 32, 0, 64, "Section"],
+Cell[CellGroupData[{
+Cell[1091, 51, 34, 0, 44, "Subsection"],
+Cell[1128, 53, 202, 5, 30, "Text"],
+Cell[1333, 60, 387, 8, 201, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1757, 73, 82, 1, 60, "Subsection"],
+Cell[1842, 76, 16, 0, 30, "Text"],
+Cell[1861, 78, 792, 19, 87, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[2690, 102, 85, 1, 60, "Subsection"],
+Cell[2778, 105, 16, 0, 30, "Text"],
+Cell[2797, 107, 689, 13, 144, "Text"],
+Cell[3489, 122, 16, 0, 30, "Text"],
+Cell[3508, 124, 44, 1, 4, "PageBreak",
+ PageBreakBelow->True],
+Cell[3555, 127, 1200, 49, 690, "Program"],
+Cell[4758, 178, 81, 1, 27, "Text"],
+Cell[4842, 181, 16, 0, 30, "Text"],
+Cell[4861, 183, 44, 1, 4, "PageBreak",
+ PageBreakBelow->True]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4942, 189, 159, 6, 60, "Subsection"],
+Cell[5104, 197, 16, 0, 30, "Text"],
+Cell[5123, 199, 244, 6, 49, "Text"],
+Cell[CellGroupData[{
+Cell[5392, 209, 174, 4, 28, "Input"],
+Cell[5569, 215, 17182, 345, 70, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[22788, 565, 161, 4, 46, "Input"],
+Cell[22952, 571, 32, 0, 28, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[23033, 577, 75, 1, 60, "Subsection"],
+Cell[23111, 580, 16, 0, 30, "Text"],
+Cell[23130, 582, 154, 3, 30, "Text"],
+Cell[23287, 587, 124, 3, 28, "Input"],
+Cell[23414, 592, 325, 5, 49, "Text"],
+Cell[23742, 599, 422, 7, 68, "Text"],
+Cell[CellGroupData[{
+Cell[24189, 610, 120, 3, 28, "Input"],
+Cell[24312, 615, 185, 5, 41, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[24534, 625, 188, 5, 28, "Input"],
+Cell[24725, 632, 170, 3, 28, "Output"]
+}, Open  ]],
+Cell[24910, 638, 44, 1, 4, "PageBreak",
+ PageBreakBelow->True],
+Cell[CellGroupData[{
+Cell[24979, 643, 71, 1, 51, "Subsubsection"],
+Cell[25053, 646, 16, 0, 30, "Text"],
+Cell[25072, 648, 114, 3, 30, "Text"],
+Cell[25189, 653, 16, 0, 30, "Text"],
+Cell[25208, 655, 23, 0, 28, "Item"],
+Cell[25234, 657, 380, 22, 326, "Program"],
+Cell[25617, 681, 26, 0, 28, "Input"],
+Cell[25646, 683, 28, 0, 28, "Item"],
+Cell[25677, 685, 313, 7, 144, "Program"],
+Cell[25993, 694, 108, 3, 30, "Text"],
+Cell[26104, 699, 44, 1, 4, "PageBreak",
+ PageBreakBelow->True]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[26209, 707, 29, 0, 64, "Section"],
+Cell[26241, 709, 459, 13, 220, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
