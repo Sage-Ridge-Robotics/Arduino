@@ -1,0 +1,485 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 9.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[     13725,        476]
+NotebookOptionsPosition[     10144,        355]
+NotebookOutlinePosition[     11870,        414]
+CellTagsIndexPosition[     11827,        411]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Serial Streams: Arduino and Wolfram", "Title"],
+
+Cell[TextData[{
+ "Displaying ultrasonic distance in a ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " notebook"
+}], "Subtitle"],
+
+Cell["", "PageBreak",
+ PageBreakBelow->True],
+
+Cell[CellGroupData[{
+
+Cell["Serial Output", "Section"],
+
+Cell[CellGroupData[{
+
+Cell["Introduction", "Subsection"],
+
+Cell[TextData[{
+ "In this experiment we will connect a servo to the Arduino and use ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " to control the servo\[CloseCurlyQuote]s position. "
+}], "Text"],
+
+Cell[TextData[{
+ "What you will need:\n\n\[Bullet] An Arduino board\n\[Bullet] A laptop\n\
+\[Bullet] A USB cable to connect the Arduino to the laptop\n\[Bullet] The \
+Arduino IDE\n\[Bullet] Arduino example sketch 19\n\[Bullet] ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ "\n\[Bullet] An ultrasonic sonar\n\[Bullet] Four patch wires (1 red (",
+ StyleBox["positive",
+  FontWeight->"Bold",
+  FontColor->RGBColor[1, 0, 0]],
+ "), 1 black (",
+ StyleBox["ground",
+  FontWeight->"Bold"],
+ "), 1 white (ping), and 1 yellow (analog distance as voltage))"
+}], "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Conecting the sonar", "Subsection",
+ Background->RGBColor[0.94, 0.91, 0.88]],
+
+Cell["", "Text"],
+
+Cell[TextData[{
+ "We want to simply connect the servo to the Arduino. The sonar has three \
+wires: ground (",
+ StyleBox["negative",
+  FontWeight->"Bold"],
+ "), voltage in (",
+ StyleBox["positive",
+  FontWeight->"Bold",
+  FontColor->RGBColor[1, 0, 0]],
+ "), a digital connection to turn the sonar on and off, and an analog \
+connection used to communicate distance as a function of voltage (0 .. 5v). \
+To connect the sonar to the Arduino board connect the red and black leads to \
+the ",
+ StyleBox["current",
+  FontWeight->"Bold",
+  FontColor->RGBColor[1, 0, 0]],
+ " and ",
+ StyleBox["ground",
+  FontWeight->"Bold"],
+ " connections on the sonar board, the white lead to the ping connection on \
+the sonar board and yellow lead to the analog output of the sonar board. \
+Connect the red lead to the +5v power pin on the Arduino, the black lead to \
+the ground pin just next to the power pin, the white lead to digital output \
+13, and the yellow lead to analog pin 0 on the Arduino."
+}], "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Setting up the Arduino", "Subsection",
+ Background->RGBColor[0.94, 0.91, 0.88]],
+
+Cell["", "Text"],
+
+Cell["\<\
+Connect the Arduino to a laptop using the USB cable and start the Arduino \
+IDE. Once the IDE is running, create a new sketch and save it into your \
+Arduino sketch folder as \[OpenCurlyDoubleQuote]Exercise 20.\
+\[CloseCurlyDoubleQuote]  Enter the code reproduced below into the window. Do \
+not just copy and paste the code. Read and understand it.
+
+Once you have added the code to your sketch, save it and then use the verify \
+button to make sure that you have no mistakes (bugs). If the code checks out, \
+upload it to the connected Arduino.
+
+If all went well, the Arduino will have briefly flashed its on-board LED and \
+your servo should briefly jump to life.\
+\>", "Text"],
+
+Cell["", "Text"],
+
+Cell["", "PageBreak",
+ PageBreakBelow->True],
+
+Cell["\<\
+/*
+
+Sage Ridge Robotics
+Example 20
+
+Sonar sensor. This sketch reports distance values from 0 - 6.45 meters 
+over a serial connection. There is a companion Processing sketch to 
+graphically depict your data.
+
+When a 5v power supply is used with the sensor, the analog voltage output of
+the device is aprox. 3.86 mV/cm.
+
+This sketch requires the following: 1) sensor vin connected to 5v; 2) sensor
+ground connected to common ground; 3) sensor RX pin connected to digital 13;
+4) sensor pin AN connected to analog pin 0 (A0) on the Arduino.
+
+This sketch is modified from the example sketch published by Adafruit, LLC 
+on github. This code is in the public domain.
+
+*/
+
+// Declare variables used in this sketch. Distance expressed as voltage 
+// is connected to analog pin A0. Digital pin 13 is used to turn the
+// device on and off.
+const int pingPin = 13;
+const int voltagePin = 0;
+int voltage = 0;
+float distance = 0;
+
+// Open a serial connection.
+void setup() {
+
+  pinMode(pingPin, OUTPUT);
+  Serial.begin(9600);
+  delay(250); // Sensor power up.
+  digitalWrite(pingPin, HIGH); // Calibration cycle
+  delay(100);
+  digitalWrite(pingPin, LOW); // Calibration cycle complete
+  
+}
+
+// The range finder is activated once per loop. The resulting 
+// voltage is converted to meters and distance is sent over the serial
+// connection.
+
+void loop() { 
+
+  digitalWrite(pingPin, HIGH);
+  for (int i=0; i<5; i++) {
+     voltage += analogRead(voltagePin);
+     delay(50);      // A reading takes 49mS
+   } voltage /= 5;   // We loop five times to take an average voltage.
+  
+  // Convert voltage to distance in cm. The value used here is calibrated but
+  // probably needs adjustment. map() can also be used as long as the highest
+  // output form the AN pin is determined. 
+  distance = (voltage * 1.153846154) * 100; 
+
+  // Map the distance to 0..255 for color display in the Processing script
+  // distance = map(distance,0,600,0,980);
+  
+  digitalWrite(pingPin, LOW);
+  Serial.print(distance); Serial.println();
+  
+}
+\
+\>", "Program",
+ Background->GrayLevel[0.85]],
+
+Cell[TextData[StyleBox["Arduino Sketch for Example 20.",
+ FontSize->10]], "Text"],
+
+Cell["", "Text"],
+
+Cell["", "PageBreak",
+ PageBreakBelow->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "Connecting the Arduino to ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " "
+}], "Subsection",
+ Background->RGBColor[0.94, 0.91, 0.88]],
+
+Cell["", "Text"],
+
+Cell[TextData[{
+ "Connect ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " to your Arduino as before. Testing the connection for data should return \
+false because you are not streaming from your Arduino but will write to it. \
+Malke sure that you are using the correct COM (Windows) or tty (OSX and \
+Linux) port."
+}], "Text"],
+
+Cell[BoxData[
+ RowBox[{"myArduino", " ", "=", " ", 
+  RowBox[{"DeviceOpen", "[", 
+   RowBox[{"\"\<Serial\>\"", ",", "\"\</dev/tty.usbmodemfa141\>\""}], 
+   "]"}]}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"DeviceExecute", "[", 
+   RowBox[{"myArduino", ",", " ", "\"\<SerialReadyQ\>\""}], "]"}], 
+  "\[IndentingNewLine]"}]], "Input"],
+
+Cell[BoxData["False"], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Reading data and visualizing the result", "Subsubsection",
+ Background->RGBColor[0.94, 0.91, 0.88]],
+
+Cell["\<\
+Initialize a data object and read from the device stream. Distance is \
+reported in centimeters via the following function: distance = (voltage * \
+1.153846154) * 100. When a 5v power supply is used with the sensor, the \
+analog voltage output of the device is aprox. 3.86 mV/cm.
+\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"myData", " ", "=", " ", 
+   RowBox[{"DeviceReadBuffer", "[", 
+    RowBox[{"myArduino", ",", " ", "250"}], "]"}]}], ";"}]], "Input"],
+
+Cell["Visualize the results:", "Text"],
+
+Cell[BoxData[
+ RowBox[{"ProgressIndicator", "[", 
+  RowBox[{
+   RowBox[{"Dynamic", "[", 
+    RowBox[{"Refresh", "[", 
+     RowBox[{
+      RowBox[{"DeviceRead", "[", "myArduino", "]"}], ",", 
+      RowBox[{"UpdateInterval", "\[Rule]", " ", "5"}]}], "]"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "600"}], "}"}]}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"HorizontalGauge", "[", 
+  RowBox[{
+   RowBox[{"Dynamic", "[", 
+    RowBox[{"Refresh", "[", 
+     RowBox[{
+      RowBox[{"DeviceRead", "[", "myArduino", "]"}], ",", 
+      RowBox[{"UpdateInterval", "\[Rule]", " ", "5"}]}], "]"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "600"}], "}"}]}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"ThermometerGauge", "[", 
+  RowBox[{
+   RowBox[{"Dynamic", "[", 
+    RowBox[{"Refresh", "[", 
+     RowBox[{
+      RowBox[{"DeviceRead", "[", "myArduino", "]"}], ",", 
+      RowBox[{"UpdateInterval", "\[Rule]", " ", "5"}]}], "]"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "600"}], "}"}]}], "]"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"Histogram", "[", 
+  RowBox[{"myData", ",", "10"}], "]"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Disconnecting", "Subsubsection",
+ Background->RGBColor[0.94, 0.91, 0.88]],
+
+Cell["", "Text"],
+
+Cell[TextData[{
+ "Finally, when we are ready to disconnect ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " from the serial data stream we can invoke the DeviceClose[] function \
+naming the serial connection object, myArduino, within the square brackets. \
+Once the function is run, the ProgressIndicator will stop updating and the \
+myArduino object will be destroyed.\n\nTo restart the connection you need to \
+invoke the DeviceOpen[] function again creating an object in the process like \
+you did above with myArduino. Once you execute DeviceClose[], you will notice \
+that your DeviceObject indicates \[OpenCurlyDoubleQuote]not connected.\
+\[CloseCurlyDoubleQuote]"
+}], "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"DeviceClose", "[", "myArduino", "]"}], ";"}]], "Input"],
+
+Cell["", "Text"],
+
+Cell["", "PageBreak",
+ PageBreakBelow->True]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["References", "Section"],
+
+Cell[TextData[{
+ "Code derived from:\n\nArduino Group (2014) ",
+ StyleBox["analogRead().",
+  FontSlant->"Italic"],
+ " http://arduino.cc/en/Reference/AnalogRead.\n\nMonk, Simon (2012) Arduino \
+Lesson 8. ",
+ StyleBox["Analog Inputs",
+  FontSlant->"Italic"],
+ ". https://learn.adafruit.com/adafruit-arduino-lesson-8-analog-inputs.\n\n\n\
+\n"
+}], "Text"]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1159, 778},
+WindowMargins->{{1, Automatic}, {Automatic, 3}},
+PrintingCopies->1,
+PrintingStartingPageNumber->1,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{
+   Cell[
+    TextData[
+     StyleBox[
+      RowBox[{"Third", " ", "Practicum"}], FontSlant -> "Plain"]], "Header", 
+    CellMargins -> {{0, Inherited}, {Inherited, Inherited}}], 
+   Cell[
+    TextData[
+     StyleBox[
+      RowBox[{
+       "Mini", "-", "Bot", "!", " ", "Arduino", " ", "and", " ", "Wolfram"}], 
+      "Header"]], "Header"], None}, {None, 
+   Cell[
+    TextData[
+     StyleBox[
+      RowBox[{
+       "Mini", "-", "Bot", "!", " ", "Arduino", " ", "and", " ", "Wolfram"}], 
+      "Header"]], "Header"], None}},
+PageFooters->{{
+   Cell[
+    TextData[
+     CounterBox["Page", CounterFunction :> Identity]], "Footer", 
+    CellMargins -> {{0, Inherited}, {Inherited, Inherited}}], None, None}, {
+  None, None, 
+   Cell[
+    TextData[
+     CounterBox["Page", CounterFunction :> Identity]], "Footer", 
+    CellMargins -> {{Inherited, 0}, {Inherited, Inherited}}]}},
+PageHeaderLines->{True, False},
+PageFooterLines->{False, False},
+PrintingOptions->{"FacingPages"->True,
+"FirstPageFace"->Right,
+"FirstPageFooter"->False,
+"FirstPageHeader"->False,
+"PaperOrientation"->"Portrait",
+"PaperSize"->{612, 792},
+"PrintCellBrackets"->False,
+"PrintMultipleHorizontalPages"->False,
+"PrintRegistrationMarks"->False,
+"PrintingMargins"->{{72., 54.}, {86.39999999999999, 72.}}},
+FrontEndVersion->"10.1 for Mac OS X x86 (32-bit, 64-bit Kernel) (March 23, \
+2015)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[579, 22, 52, 0, 92, "Title"],
+Cell[634, 24, 134, 5, 51, "Subtitle"],
+Cell[771, 31, 44, 1, 4, "PageBreak",
+ PageBreakBelow->True],
+Cell[CellGroupData[{
+Cell[840, 36, 32, 0, 64, "Section"],
+Cell[CellGroupData[{
+Cell[897, 40, 34, 0, 44, "Subsection"],
+Cell[934, 42, 202, 5, 30, "Text"],
+Cell[1139, 49, 565, 14, 201, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1741, 68, 82, 1, 60, "Subsection"],
+Cell[1826, 71, 16, 0, 30, "Text"],
+Cell[1845, 73, 994, 24, 106, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[2876, 102, 85, 1, 60, "Subsection"],
+Cell[2964, 105, 16, 0, 30, "Text"],
+Cell[2983, 107, 689, 13, 144, "Text"],
+Cell[3675, 122, 16, 0, 30, "Text"],
+Cell[3694, 124, 44, 1, 4, "PageBreak",
+ PageBreakBelow->True],
+Cell[3741, 127, 2065, 68, 956, "Program"],
+Cell[5809, 197, 81, 1, 27, "Text"],
+Cell[5893, 200, 16, 0, 30, "Text"],
+Cell[5912, 202, 44, 1, 4, "PageBreak",
+ PageBreakBelow->True]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5993, 208, 159, 6, 60, "Subsection"],
+Cell[6155, 216, 16, 0, 30, "Text"],
+Cell[6174, 218, 333, 8, 49, "Text"],
+Cell[6510, 228, 174, 4, 28, "Input"],
+Cell[CellGroupData[{
+Cell[6709, 236, 161, 4, 46, "Input"],
+Cell[6873, 242, 32, 0, 28, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6942, 247, 105, 1, 51, "Subsubsection"],
+Cell[7050, 250, 304, 6, 68, "Text"],
+Cell[7357, 258, 166, 4, 28, "Input"],
+Cell[7526, 264, 38, 0, 30, "Text"],
+Cell[7567, 266, 341, 9, 28, "Input"],
+Cell[7911, 277, 339, 9, 28, "Input"],
+Cell[8253, 288, 340, 9, 28, "Input"],
+Cell[8596, 299, 91, 2, 28, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8724, 306, 79, 1, 51, "Subsubsection"],
+Cell[8806, 309, 16, 0, 30, "Text"],
+Cell[8825, 311, 688, 12, 106, "Text"],
+Cell[9516, 325, 90, 2, 28, "Input"],
+Cell[9609, 329, 16, 0, 30, "Text"],
+Cell[9628, 331, 44, 1, 4, "PageBreak",
+ PageBreakBelow->True]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[9733, 339, 29, 0, 64, "Section"],
+Cell[9765, 341, 351, 10, 182, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

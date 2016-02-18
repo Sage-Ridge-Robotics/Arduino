@@ -9,7 +9,11 @@ Lux sensor. This sketch reports lux values over a serial connection. There is
 a companion Processing sketch to graphically depict your data.
 
 This sketch is modified from the example sketch published by Adafruit, LLC 
-on github. This code is in the public domain.
+on Github. 
+
+Copyright (c) 2016 Christopher von Nagy
+This code is in the public domain.
+
 
 */
 
