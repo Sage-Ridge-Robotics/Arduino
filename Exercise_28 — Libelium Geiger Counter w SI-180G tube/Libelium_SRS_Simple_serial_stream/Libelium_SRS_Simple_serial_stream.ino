@@ -1,10 +1,9 @@
 /*  
  *  Geiger Counter - Radiation Sensor Board 
  *
- *  This sketch displays radiation data on an LCD screen. It 
- *  also sends data over serial. You might create a Processing
- *  or Mathematica program to parse and handle this data. If you
- *  do so, consider modifying the manner in which the data is set. 
+ *  This sketch handles radiation data and sends a simple 
+ *  stream of comma-delimited data over the serial link. The
+ *  display is not used.
  *  
  *  Copyright (C) Libelium Comunicaciones Distribuidas S.L. 
  *  http://www.libelium.com 
@@ -26,27 +25,10 @@
  *  along with this program.  If not, see http://www.gnu.org/licenses/. 
  *  
  *  Version:           1.0
- *  Original design:            David Gascón 
- *  Original implementation:    Marcos Yarza
- *  Changes                     Christopher von Nagy
+ *  Author             Christopher von Nagy
+ *  Libelium elements: David Gascón and Marcos Yarza 
  *
  */
-
-// include the LiquidCrystal library code:
-#include <LiquidCrystal.h>
-
-// LiquidCrystal
-// initialize the library with the numbers of the interface pins
-LiquidCrystal lcd(3,4,5,6,7,8);
-
-// Threshold values for the led bar
-// These threshold values are counts
-// per minute.
-#define TH1 45
-#define TH2 95
-#define TH3 200
-#define TH4 400
-#define TH5 600
 
 // Conversion factor - CPM to uSV/h
 // Converting counts per minute to uSV/h (absorbed radiation) is a complicated matter.
@@ -72,9 +54,22 @@ LiquidCrystal lcd(3,4,5,6,7,8);
 // #define CONV_FACTOR 0.0031 // SBT11-A 
 // #define CONV_FACTOR 0.0117 // SBT-9 
 
+// Threshold values for the led bar
+// These threshold values are counts
+// per minute.
+#define TH1 45
+#define TH2 95
+#define TH3 200
+#define TH4 400
+#define TH5 600
+
+
+
 // Variables
 int ledArray [] = {10,11,12,13,9};
+
 int geiger_input = 2;
+int ledLevel;
 long count = 0;
 long countPerMinute = 0;
 long timePrevious = 0;
@@ -92,32 +87,7 @@ void setup(){
     pinMode(ledArray[i],OUTPUT);
   }
 
-  Serial.begin(115200);
-  Serial.println("\nStarting ...");
-  
-  //set up the LCD's number of columns and rows:
-  lcd.begin(16, 2);
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Radiation Sensor");
-  lcd.setCursor(0,1);
-  lcd.print("SI-180G tube");  
-  delay(5000);
-
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("SRS Robotics");
-  lcd.setCursor(0,1);  
-  lcd.print("Go Scorpions!");
-  delay(5000);
-
-  lcd.clear();  
-  lcd.setCursor(0, 0);
-  lcd.print("CPM=");
-  lcd.setCursor(4,0);
-  lcd.print(6*count);
-  lcd.setCursor(0,1);
-  lcd.print(radiationValue);
+  Serial.begin(9600);
   
   // The sketch uses the interrupt mechanism on digital
   // pin 2 to receive 'ticks' from the Libellium board.
@@ -143,38 +113,29 @@ void loop(){
     radiationValue = countPerMinute * CONV_FACTOR;
     timePreviousMeassure = millis();
    
-    // Write values to LCD screen
-    lcd.clear();    
-    lcd.setCursor(0, 0);
-    lcd.print("CPM=");
-    lcd.setCursor(4,0);
-    lcd.print(countPerMinute);
-    lcd.setCursor(0,1);
-    lcd.print(radiationValue,4);
-    lcd.setCursor(6,1);
-    lcd.print(" uSv/h");
-
     //led var setting  
     if(countPerMinute <= TH1) ledVar(0);
-    if((countPerMinute <= TH2)&&(countPerMinute>TH1)) ledVar(1);
-    if((countPerMinute <= TH3)&&(countPerMinute>TH2)) ledVar(2);
-    if((countPerMinute <= TH4)&&(countPerMinute>TH3)) ledVar(3);
-    if((countPerMinute <= TH5)&&(countPerMinute>TH4)) ledVar(4);
+    if((countPerMinute <= TH2)&&(countPerMinute>TH1)) { ledVar(1); ledLevel = 1; }
+    if((countPerMinute <= TH3)&&(countPerMinute>TH2)) { ledVar(2); ledLevel = 2; }
+    if((countPerMinute <= TH4)&&(countPerMinute>TH3)) { ledVar(3); ledLevel = 3; }
+    if((countPerMinute <= TH5)&&(countPerMinute>TH4)) { ledVar(4); ledLevel = 4; }
     if(countPerMinute>TH5) ledVar(5);
 
-    // Reader friendly 
-    Serial.print("cpm = "); 
-    Serial.print(countPerMinute,DEC);
-    Serial.print(" ");
-    Serial.print("uSv/h = ");
-    Serial.println(radiationValue,4);
-    
+    // Data parsing friendly 
+    Serial.print(countPerMinute);
+    Serial.print(",");
+    Serial.print(radiationValue,4);
+    Serial.print(",");
+    Serial.print(ledLevel);
+    Serial.println("\0");                     // line terminator
+
     count = 0;
     
 
   }
 
 }
+
 
 // Function to count the pulses
 void countPulse(){

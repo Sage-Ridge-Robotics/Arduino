@@ -1,12 +1,13 @@
 /*
 Sage Ridge Robotics
-Example 5 — Electro-Sketch
+Example 6 — ElectroSketch
 
-Elecktro-sketch, or how to control a brush on the 
-canvas with two potentiometers
+ElecktroSketch, or how to control a brush on the 
+canvas with two potentiometers. This Processing sketch
+is paired with Arduino Exercise 6.
 
-Add more potentiometers or other gizmos to your Arduino to 
-control color, line width, etc!
+Add more potentiometers, switches, or other gizmos to your 
+Arduino to control color, line width, etc!
 
 Adapted from Processing.org
 
@@ -36,7 +37,7 @@ int lt = 10;
 // a complete line of values from the Arduino the first time.
 void setup() 
 {
-  size(1618, 1000); // Golden Ratio
+  size(500, 500);
   colorMode(HSB, 100);
   noSmooth();
   strokeWeight(3);
@@ -48,7 +49,13 @@ void setup()
 }
 
 // Processing using draw() rather than loop(). Like Arduino,
-// this is an infinite loop.
+// this is an infinite loop. 
+
+// While myPort is available we read lines of data streaming
+// from the Arduino, split the character stream at commas,
+// and store the data (x, y) in an array. The position of the 
+// pen object, myPen, is then updated with the data streamed 
+// from the Arduino.
 void draw() {
   while (myPort.available() > 0) {
     String inBuffer = myPort.readStringUntil(lt);
@@ -59,8 +66,8 @@ void draw() {
       myPen.yPrev = myPen.y;
       myPen.x = esPenState[0];
       myPen.y = esPenState[1];
-      myPen.hueValue = esPenState[2];
-      myPen.scratch();
+      // myPen.hueValue = esPenState[2];
+      myPen.ink();
 
     } 
   }
@@ -101,7 +108,7 @@ class esPen {
  // Method to draw the etch point. First the fill is set to 
  // the color set by hueValue. Saturation and brightness are static
  // but can be changed here.
- void scratch() {
+ void ink() {
    esHSB = color(hueValue,50,50); // Color can be changed here.
    stroke( esHSB );
    line(x, y, xPrev, yPrev);
