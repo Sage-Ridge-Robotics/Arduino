@@ -3,55 +3,83 @@
 Sage Ridge Robotics
 Example 26
 
-Compass and Accelerometer
+Compass and Accelerometer. This sketch reports compass and accelerometer data to the serial stream. Experiment
+with determining variations in the earth' magnetic field or in detecting and visualizing the magnetic field of 
+a neodimium or other magnet placed in range od the sensor.
+
+This sketch uses the Adafruit library.
+
+Do not place the sensor on a magnet.
 
 */
 
+// VARIABLES --------------------------------------------------------------------------------------------------
+float declination = 0.2377; // radians in Reno, NV. If you are somewhere else, you will need to find your correct declination
+
 // LOAD LIBRARIES ---------------------------------------------------------------------------------------------
+
+// Wire library for I2C
+#include <Wire.h>
 
 // Compass and accelerometer 
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LSM303_U.h>
 
-// Adafruit MotorShield
-#include <Wire.h>
-#include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_PWMServoDriver.h"
-
 // avr math library
 #include <math.h>
 
-// Variables ---------------------------------------------------------------------------------------------
-const int leftMotorPort  = 1; 
-const int rightMotorPort = 2;
-const int motorInterval = 5000;
-
-
 // Instantiate! ------------------------------------------------------------------------------------------
 Adafruit_LSM303_Mag_Unified mag = Adafruit_LSM303_Mag_Unified(12345);  // Compass subsystem
-Adafruit_MotorShield AFMS = Adafruit_MotorShield();                    // Drive subsystem
-Adafruit_DCMotor *myLeftDCMotor = AFMS.getMotor(leftMotorPort);
-Adafruit_DCMotor *myRightDCMotor = AFMS.getMotor(rightMotorPort);
 
 // Setting things up, including the interrupt
 void setup()  
 {
     
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println("Start setup . . . ");
   
   if(!mag.begin())
   {
-    Serial.println("LSM303 compass system not detected ... Check your wiring!");
+    Serial.println("LSM303 compass and accelerometer system not detected ... Check your wiring!");
     while(1);
   }
-  mag.enableAutoRange(true);
+  
+  // Manually set gain and magnetometer update rate
+  mag.setMagGain(LSM303_MAGGAIN_1_3);
+  mag.setMagRate(LSM303_MAGRATE_3_0);
+  
+  /*  Magnetometer gain rates in Gauss. 
+      +/- 1.3 is -1.3 -- 1.3 Gauss. Raw magnetic measurement is in gauss rather than tesla units.
+      Select the smallest range encompassing your measurements for the highest precision.
+      
+      LSM303_MAGGAIN_1_3                        = 0x20,  // +/- 1.3
+      LSM303_MAGGAIN_1_9                        = 0x40,  // +/- 1.9
+      LSM303_MAGGAIN_2_5                        = 0x60,  // +/- 2.5
+      LSM303_MAGGAIN_4_0                        = 0x80,  // +/- 4.0
+      LSM303_MAGGAIN_4_7                        = 0xA0,  // +/- 4.7
+      LSM303_MAGGAIN_5_6                        = 0xC0,  // +/- 5.6
+      LSM303_MAGGAIN_8_1                        = 0xE0   // +/- 8.1
+      
+  */
+  
+  /*  Magnetometer update rates
+      LSM303_MAGRATE_0_7                        = 0x00,  // 0.75 Hz
+      LSM303_MAGRATE_1_5                        = 0x01,  // 1.5 Hz
+      LSM303_MAGRATE_3_0                        = 0x62,  // 3.0 Hz
+      LSM303_MAGRATE_7_5                        = 0x03,  // 7.5 Hz
+      LSM303_MAGRATE_15                         = 0x04,  // 15 Hz
+      LSM303_MAGRATE_30                         = 0x05,  // 30 Hz
+      LSM303_MAGRATE_75                         = 0x06,  // 75 Hz
+      LSM303_MAGRATE_220                        = 0x07   // 200 Hz
+  */
+  
+  // Enables magnetometer autoranging
+  // mag.enableAutoRange(true);
+  
+
+  // Calls function to report information on chip
   displaySensorDetails();
   
-  Serial.println("Motors ");
-  AFMS.begin();
-  
-  Serial.println(" . . . Setup complete");
   
 }
 
@@ -63,62 +91,33 @@ void loop(){
   sensors_event_t event; 
   mag.getEvent(&event);
   
-      float compassBearing = (atan2(event.magnetic.y,event.magnetic.x) * 180) / PI;
-            
-    else {full_stop();}
-  }
-}
-
-void driveForward () {
-  Serial.println("Driving ... "); 
-  myLeftDCMotor->setSpeed(250); 
-  myRightDCMotor->setSpeed(250);
-  myLeftDCMotor->run(FORWARD); 
-  myRightDCMotor->run(FORWARD); 
-  delay(motorInterval);
-}
-
-void rotate_to_f_azimuth (float a_correction) {
+  // Calculate compass bearing and convert to degrees from radians. We are going to use a bit
+  // of trigonometry here. Declination is defined above. The chip should be flat.
   
-  int iterations = floor(abs(a_correction));
-  int d_period = 20;
-  myLeftDCMotor->setSpeed(100); 
-  myRightDCMotor->setSpeed(100);
+  // First we calculate the heading using the atan2 function, and the magnetic x and y vectors.
+  float heading = atan2(event.magnetic.y,event.magnetic.x);
+  heading += declination;   // heading -= declination if the declination is negative.
+ 
+  // Convert to degrees from radians 
+  if( heading <0 ) { heading += 2*PI; }
+  if( heading > 2*PI ) { heading -= 2*PI; }
+  float compassBearing = ( heading * 180) / PI;
   
-  if ( a_correction < 0 ) {
-    Serial.print("Correcting left "); 
-    Serial.print(iterations);
-    Serial.print(" degrees ");
-    for (int i=0; i < iterations; i++) {
-      Serial.print(".");
-      myLeftDCMotor->run(BACKWARD); 
-      myRightDCMotor->run(FORWARD);
-      delay(d_period);
-    }
-    myLeftDCMotor->run(RELEASE); 
-    myRightDCMotor->run(RELEASE);
-    Serial.println(" done"); 
-  } 
-  
-  if ( a_correction > 0 ) {
-    Serial.print("Correcting right "); 
-    Serial.print(iterations);
-    Serial.print(" degrees ");
-    for (int i=0; i < iterations; i++) {     
-      Serial.print(".");
-      myLeftDCMotor->run(FORWARD); 
-      myRightDCMotor->run(BACKWARD);
-      delay(d_period);
-    }
-    myLeftDCMotor->run(RELEASE); 
-    myRightDCMotor->run(RELEASE);
-    Serial.println(" done"); 
-  }   
-}
 
-void full_stop() {
-       myLeftDCMotor->run(RELEASE); 
-      myRightDCMotor->run(RELEASE);
+  // Magnetic vector values are in micro-Tesla (uT)). One micro-Tesla is 0.01 G (gauss); 1 T is 10,000 G (gauss).
+  Serial.print("Bearing: "); Serial.print(compassBearing); Serial.print("  ");
+  Serial.print("X: "); Serial.print(event.magnetic.x); Serial.print("  ");
+  Serial.print("Y: "); Serial.print(event.magnetic.y); Serial.print("  ");
+  Serial.print("Z: "); Serial.print(event.magnetic.z); Serial.print("  ");
+  Serial.println("uT");
+
+  // Acceleration is in m/sˆ2.
+  Serial.print("X: "); Serial.print(event.acceleration.x); Serial.print("  ");
+  Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
+  Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");
+  Serial.println("m/s^2 ");
+  delay(500);
+
 }
 
 void displaySensorDetails(void)
