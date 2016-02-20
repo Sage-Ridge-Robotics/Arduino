@@ -30,7 +30,7 @@ int theraminPin01 = 1; // Volume
 int theraminVal01;
 
 // Noting to set up.
-void setup()
+void setup() {}
 
 // We loop through taking readings from the analog inputs, 
 // scaling the readings with map and setting the speaker tone

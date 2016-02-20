@@ -31,7 +31,7 @@ This code is in the public domain.
 // personal Arduino/Libraries folder.
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_PWMServoDriver.h"
+#include "utility/Adafruit_MS_PWMServoDriver.h"
  
 // Declare variables used globally in the Sketch.  
 // An Adafruit MotorShield has four motor ports, 1 -- 4.

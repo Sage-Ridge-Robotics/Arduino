@@ -31,13 +31,10 @@ Christopher von Nagy
 // Adafruit MotorShield
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_PWMServoDriver.h"
+#include "utility/Adafruit_MS_PWMServoDriver.h"
 
 // avr math library
 #include <math.h>
-
-// Motor functions
-#include "./motor_functions.h"                        
 
 // GPS target list
 #include "./GPS_targetlist.h"

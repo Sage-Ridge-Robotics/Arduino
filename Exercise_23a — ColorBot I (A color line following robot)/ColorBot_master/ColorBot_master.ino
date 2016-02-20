@@ -22,7 +22,7 @@ Stuart Hayes  (w. corrections by C v Nagy)
 // Motion transducers
 #include "Servo.h"
 #include "Adafruit_MotorShield.h"
-#include "utility/Adafruit_PWMServoDriver.h"
+#include "utility/Adafruit_MS_PWMServoDriver.h"
 
 // Sensor functions
 // The sonar() fucntion is included in this file rather than sensor.h
@@ -87,7 +87,7 @@ void setup() {
   myServo0.write(0);
   delay(1000);
   myServo0.write(180);
-  delay(1000)
+  delay(1000);
   myServo0.write(steeringangle);
   delay(1000);
 
@@ -95,7 +95,7 @@ void setup() {
   myServo1.write(0);
   delay(1000);
   myServo1.write(180);
-  delay(1000)
+  delay(1000);
   myServo1.write(boomangle);
   delay(1000);
   
@@ -119,7 +119,7 @@ void loop() {
     
   // Check for obstacle
   int fstop = sonar(sonar_critical_distance, pingpin, vpin);
-  if (fstop) {Serial.println("Obstacle"); avoid_obstacle();} else {Serial.println("No obstacle. Continuing.";}
+  if (fstop) {Serial.println("Obstacle"); avoid_obstacle();} else {Serial.println("No obstacle. Continuing.");}
   
   // Check color detection subsystem
   boolean cstatus = digitalRead(opin);

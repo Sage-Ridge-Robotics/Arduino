@@ -189,10 +189,10 @@ void loop(){
        // c = 2 ⋅ atan2( √a, √(1−a) )
        // d = R ⋅ c 
        // Where R is is earth’s radius (mean radius = 6371000m)
-     tr_latitude = t_latitude * (PI/180);  
-     cr_latitude = c_latitude * (PI/180);
-     tr_longitude = t_longitude * (PI/180);
-     cr_longitude = c_longitude * (PI/180);
+     float tr_latitude = t_latitude * (PI/180);  
+     float cr_latitude = c_latitude * (PI/180);
+     float tr_longitude = t_longitude * (PI/180);
+     float cr_longitude = c_longitude * (PI/180);
      float t_distance = acos( sin(cr_latitude) * sin(tr_latitude) + cos(cr_latitude) * cos(tr_latitude) * cos(tr_longitude - cr_longitude) ) * 6371000;
      Serial.print("Distance from target cache"); Serial.print(t_distance); Serial.println("m");
      

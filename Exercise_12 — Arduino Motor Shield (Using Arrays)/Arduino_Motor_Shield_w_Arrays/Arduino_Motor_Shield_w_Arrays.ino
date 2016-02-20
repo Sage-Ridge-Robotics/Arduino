@@ -26,7 +26,7 @@ from a file on an SD card.
 #include <Servo.h>
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_PWMServoDriver.h"
+#include "utility/Adafruit_MS_PWMServoDriver.h"
 
 // Declare variables used globally in the Sketch.  
 // Define constant (unchanging) minimum and maximum servo positions.

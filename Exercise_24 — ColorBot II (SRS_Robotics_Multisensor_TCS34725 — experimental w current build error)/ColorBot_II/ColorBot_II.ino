@@ -26,6 +26,7 @@ This Sketch requires the SRS_Robotics_Multisensor_TCS34725 library.
 
 // Sensing transducers
 // Sensor library and lux sensor library
+#include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TSL2561_U.h> 
 
@@ -37,13 +38,8 @@ This Sketch requires the SRS_Robotics_Multisensor_TCS34725 library.
 // Motion transducers
 #include <Servo.h>                                    // Allows for servo control
 #include <Adafruit_MotorShield.h>                     // Allws for the use of the MotorShield
-#include "utility/Adafruit_PWMServoDriver.h"
+#include "utility/Adafruit_MS_PWMServoDriver.h"
 
-// Sensor functions
-#include "./sensor_functions.h"                       // Sensor functions defined for this project
-
-// Motor functions
-#include "./motor_functions.h"                        // Motor functions defined for this project
 
 // DECLARE VARIABLES ------------------------------------------------------------------------------------------
 
@@ -92,8 +88,8 @@ const int servoPin = 9;            // Set servo pin
 const int motorPort01 = 1;         // Set left motor output on MotorShield. 
 const int motorPort02 = 2;         // Set right motor output on MotorShield.
 
-const int motor_speed = 100;       // We set a uniform motor speed.
-const int motor_period = 1000;     // We set a uniform delay for motor functions
+const int motorSpeed = 100;       // We set a uniform motor speed.
+const int motorPeriod = 1000;     // We set a uniform delay for motor functions
 
 int headlight = 0;                 // We use headlight to switch the color sensor headlight status
 int fstop = 0;                     // We use full stop for collision avoidance.
@@ -156,8 +152,8 @@ void setup() {
   // Initialize transducers
   myServo0.attach(9);
   AFMS.begin();
-  myDCMotor01->setSpeed(motor_speed);
-  myDCMotor02->setSpeed(motor_speed);
+  myDCMotor01->setSpeed(motorSpeed);
+  myDCMotor02->setSpeed(motorSpeed);
 
 }
 
@@ -178,8 +174,8 @@ void loop() {
   int fstop = sonar(sonar_critical_distance);
   if (fstop) {avoid_obstacle();}
   
-  if (check_color_status(tcs01, LAB_target, deltaE_threshold)) {move_right_soft();}
-  if (check_color_status(tcs02, LAB_target, deltaE_threshold)) {move_left_soft(); }
+  if (check_color_status(tcs01, L_target, a_target, b_target, deltaE_threshold)) {move_right_soft();}
+  if (check_color_status(tcs02, L_target, a_target, b_target, deltaE_threshold)) {move_left_soft(); }
   move_forward();
   
   

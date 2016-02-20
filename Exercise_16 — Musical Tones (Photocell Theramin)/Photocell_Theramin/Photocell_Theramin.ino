@@ -22,7 +22,7 @@ int photoPin01 = 0;
 int photoVal01;
 
 // Noting to set up.
-void setup()
+void setup() {}
 
 // We loop through taking readings from the photocell, scaling the reading,
 // and setting the piezo tone.

@@ -115,15 +115,15 @@ void switch_headlight(int h, int hl01, int hl02) {
 // Parameters are a pointer to the sensor object, int L, a, b values, and deltaE threshhold
 int check_color_status(TCS34725 *sensor, float *L_target, float *a_target, float *b_target, float *deltaE_threshold) {
   
-  int match;
+  int match = 0;
   float L_sample, a_sample, b_sample, deltaL, deltaA, deltaB, deltaE;
 
   sensor->getLAB( &L_sample, &a_sample, &b_sample );
   deltaL = L_sample - L_target;
   deltaA = a_sample - a_target;
   deltaB = b_sample - b_target;
-  deltaE = sqrt(pow(deltaLab[0],2) + pow(deltaLab[1],2) + pow(deltaLab[2],2));
-  if (deltaE <= deltaE_threshold) {match = 1;} else {match = 0;}
+  deltaE = sqrt(pow(deltaL,2) + pow(deltaA,2) + pow(deltaB,2));
+  if (deltaE <= deltaE_threshold) {match = 1;}
   return match;
 
 }
@@ -136,8 +136,8 @@ int sonar(int critical_distance){
     float distance;
     int fstop = 0;
     
-    pinmode(pingpin,OUTPUT);
-    pinmode(vpin,INPUT);
+    pinMode(pingpin,OUTPUT);
+    pinMode(vpin,INPUT);
     
     // Calibration
     digitalWrite(pingpin, HIGH);
